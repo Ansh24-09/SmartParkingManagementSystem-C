@@ -6,21 +6,24 @@
 #include <string.h>
 #include <time.h>
 
+#define MAX_SLOTS 10
+
 typedef struct Park {
     int id;
     char slot[10];
     char plate[15];
+    int duration;       // in minutes
     long start;
     long end;
-    struct Park *next; // linked list pointer
+    struct Park *next;
 } Park;
 
-typedef struct User {
-    char name[20];
-    char pass[20];
-} User;
+typedef struct Heap {
+    int slotNo;
+    int duration; // duration requested
+} Heap;
 
-// function declarations
+// Function Declarations
 int login();
 void addSession(Park **head);
 void endSession(Park **head);
@@ -28,5 +31,9 @@ void displaySessions(Park *head);
 void saveSessions(Park *head);
 void recordTransaction(Park *p);
 long calcDuration(long start, long end);
+
+// Heap (DSA) functions
+void insertSlot(Heap h[], int *n, int slotNo, int duration);
+int extractMinSlot(Heap h[], int *n);
 
 #endif
