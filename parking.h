@@ -6,13 +6,14 @@
 #include <string.h>
 #include <time.h>
 
-#define MAX_SLOTS 10
+#define MAX_SLOTS 5     // small number to test queue
+#define MAX_WAIT 10
 
 typedef struct Park {
     int id;
-    char slot[10];
     char plate[15];
-    int duration;       // in minutes
+    char slot[10];
+    int duration;
     long start;
     long end;
     struct Park *next;
@@ -20,20 +21,24 @@ typedef struct Park {
 
 typedef struct Heap {
     int slotNo;
-    int duration; // duration requested
+    int duration;
 } Heap;
 
-// Function Declarations
-int login();
-void addSession(Park **head);
-void endSession(Park **head);
-void displaySessions(Park *head);
-void saveSessions(Park *head);
-void recordTransaction(Park *p);
-long calcDuration(long start, long end);
+typedef struct Queue {
+    int id;
+    char plate[15];
+    int duration;
+} Queue;
 
-// Heap (DSA) functions
+void addSession(Park **head, Heap heap[], int *heapCount, Queue q[], int *front, int *rear);
+void endSession(Park **head, Queue q[], int *front, int *rear, Heap heap[], int *heapCount);
+void displaySessions(Park *head);
+void recordTransaction(Park *p);
+void enqueue(Queue q[], int *front, int *rear, int id, char plate[], int dur);
+void dequeueAndAssign(Park **head, Queue q[], int *front, int *rear, Heap heap[], int *heapCount);
+int isQueueEmpty(int front, int rear);
 void insertSlot(Heap h[], int *n, int slotNo, int duration);
 int extractMinSlot(Heap h[], int *n);
+void binarySearch(Park *head, int id);
 
 #endif
