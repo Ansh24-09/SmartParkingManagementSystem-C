@@ -1,62 +1,105 @@
 #include "parking.h"
 
+void swap(Heap *a, Heap *b) {
+    Heap temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void insertSlot(Heap h[], int *n, int slotNo, int duration) {
+    (*n)++;
+    h[*n].slotNo = slotNo;
+    h[*n].duration = duration;
+
+    int i = *n;
+    while (i > 1 && h[i].duration < h[i/2].duration) {
+        swap(&h[i], &h[i/2]);
+        i /= 2;
+    }
+}
+
+int extractMinSlot(Heap h[], int *n) {
+    if (*n == 0) return -1;
+
+    int slotNo = h[1].slotNo;
+    h[1] = h[*n];
+    (*n)--;
+
+    int i = 1;
+    while (1) {
+        int l = 2 * i, r = 2 * i + 1, s = i;
+
+        if (l <= *n && h[l].duration < h[s].duration) s = l;
+        if (r <= *n && h[r].duration < h[s].duration) s = r;
+
+        if (s == i) break;
+        swap(&h[i], &h[s]);
+        i = s;
+    }
+    return slotNo;
+}
+
 void addSession(Park **head) {
+    static Heap heap[20];
+    static int count = 0;
+
+    int id, dur;
+    char plate[15];
+    printf("\nEnter Vehicle ID: ");
+    scanf("%d", &id);
+    printf("Enter Vehicle Plate: ");
+    scanf("%s", plate);
+    printf("Enter expected parking duration (in minutes): ");
+    scanf("%d", &dur);
+
+    // Add slot to heap based on duration
+    insertSlot(heap, &count, count + 1, dur);
+    int slot = extractMinSlot(heap, &count);
+
     Park *n = (Park *)malloc(sizeof(Park));
-    printf("\nEnter vehicle ID: ");
-    scanf("%d", &n->id);
-    printf("Enter slot number: ");
-    scanf("%s", n->slot);
-    printf("Enter vehicle plate: ");
-    scanf("%s", n->plate);
+    n->id = id;
+    n->duration = dur;
+    sprintf(n->slot, "S%d", slot);
+    strcpy(n->plate, plate);
     n->start = time(NULL);
     n->end = 0;
     n->next = *head;
     *head = n;
-    printf("Vehicle parked successfully.\n");
+
+    printf("Assigned Slot: %s (based on duration %d mins)\n", n->slot, dur);
 }
 
 void endSession(Park **head) {
     int id;
-    printf("\nEnter vehicle ID to exit: ");
+    printf("\nEnter Vehicle ID to exit: ");
     scanf("%d", &id);
 
-    Park *temp = *head, *prev = NULL;
-    while (temp != NULL && temp->id != id) {
-        prev = temp;
-        temp = temp->next;
+    Park *t = *head, *prev = NULL;
+    while (t && t->id != id) {
+        prev = t;
+        t = t->next;
     }
 
-    if (temp == NULL) {
-        printf("Vehicle not found.\n");
+    if (!t) {
+        printf("Vehicle not found!\n");
         return;
     }
 
-    temp->end = time(NULL);
-    recordTransaction(temp);
+    t->end = time(NULL);
+    recordTransaction(t);
 
-    if (prev == NULL) *head = temp->next;
-    else prev->next = temp->next;
+    if (prev) prev->next = t->next;
+    else *head = t->next;
 
-    free(temp);
-    printf("Vehicle exited and transaction saved.\n");
+    printf("Vehicle %s exited from %s.\n", t->plate, t->slot);
+    free(t);
 }
 
 void displaySessions(Park *head) {
-    Park *p = head;
     printf("\nActive Sessions:\n");
-    printf("ID\tSlot\tPlate\tStart Time\n");
-    while (p) {
-        printf("%d\t%s\t%s\t%ld\n", p->id, p->slot, p->plate, p->start);
-        p = p->next;
+    printf("ID\tPlate\tSlot\tDuration(min)\tStart Time\n");
+    while (head) {
+        printf("%d\t%s\t%s\t%d\t%ld\n", head->id, head->plate, head->slot, head->duration, head->start);
+        head = head->next;
     }
-}
-
-void saveSessions(Park *head) {
-    FILE *f = fopen("sessions.txt", "w");
-    Park *p = head;
-    while (p) {
-        fprintf(f, "%d %s %s %ld %ld\n", p->id, p->slot, p->plate, p->start, p->end);
-        p = p->next;
-    }
-    fclose(f);
 }
