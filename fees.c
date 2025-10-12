@@ -1,13 +1,21 @@
-#include "parking.h"
+#include <stdio.h>
+#include "fees.h"
 
 long calcDuration(long start, long end) {
-    return (end - start) / 60; // duration in minutes
+    return (end - start) / 60; 
 }
 
-void recordTransaction(Park *p) {
-    long dur = calcDuration(p->start, p->end);
-    int cost = dur * 2; // ₹2 per minute
+void recordTransaction(struct Park *p) {
+    long duration = calcDuration(p->startTime, p->endTime);
+    int cost = duration * 2;
+
     FILE *f = fopen("transactions.txt", "a");
-    fprintf(f, "%d %s %s %ld %ld %ld %d\n", p->id, p->slot, p->plate, p->start, p->end, dur, cost);
+    if (!f) {
+        printf("Error opening transactions file!\n");
+        return;
+    }
+
+    fprintf(f, "%d %s %s %ld %ld %ld %d\n",
+            p->id, p->slotName, p->plate, p->startTime, p->endTime, duration, cost);
     fclose(f);
 }
