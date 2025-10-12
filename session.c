@@ -3,7 +3,7 @@
 
 void saveSession(char *msg) {
     FILE *f = fopen("session.txt", "a");
-    fprintf(f, "%s\n", msg);   // safe, no buffer overflow risk
+    fprintf(f, "%s\n", msg);   
     fclose(f);
 }
 
