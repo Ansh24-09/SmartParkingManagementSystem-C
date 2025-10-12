@@ -3,11 +3,19 @@
 
 struct Slot {
     int id;
-    int time; // hours parked
+    int hours;     
     struct Slot *next;
 };
 
-struct Slot* addSlot(struct Slot *head, int id, int time);
+struct Park {
+    int id;
+    char slotName[10];
+    char plate[20];
+    long startTime;
+    long endTime;
+};
+
+struct Slot* addSlot(struct Slot *head, int id, int hours);
 void showSlots(struct Slot *head);
 void saveSlots(struct Slot *head);
 
