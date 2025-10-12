@@ -1,47 +1,66 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "auth.h"
+#include "fees.h"
+#include "record.h"
+#include "session.h"
 #include "parking.h"
 
 int main() {
-    Park *head = NULL;
-    Heap heap[20];
-    Queue queue[MAX_WAIT];
-    int heapCount = 0, front = 0, rear = -1;
-    int choice;
+    struct Slot *head = NULL;
+    int ch, id, time, fee, logged = 0, opt;
 
-    printf("\n===== SMART PARKING MANAGEMENT SYSTEM (DSA VERSION) =====\n");
+    printf("--- Smart Parking System ---\n");
+    printf("1. Login\n2. Register\nChoose: ");
+    scanf("%d", &opt);
 
-    while (1) {
-        printf("\n------------------ MENU ------------------\n");
-        printf("1. Add Vehicle (Check-In)\n");
-        printf("2. End Session (Check-Out)\n");
-        printf("3. Display Active Sessions\n");
-        printf("4. Search Vehicle by ID (Binary Search)\n");
-        printf("5. Exit\n");
-        printf("------------------------------------------\n");
-        printf("Enter your choice: ");
-        scanf("%d", &choice);
-
-        switch (choice) {
-            case 1:
-                addSession(&head, heap, &heapCount, queue, &front, &rear);
-                break;
-            case 2:
-                endSession(&head, queue, &front, &rear, heap, &heapCount);
-                break;
-            case 3:
-                displaySessions(head);
-                break;
-            case 4: {
-                int id;
-                printf("Enter Vehicle ID to Search: ");
-                scanf("%d", &id);
-                binarySearch(head, id);
-                break;
-            }
-            case 5:
-                printf("\nExiting... Thank you!\n");
-                return 0;
-            default:
-                printf("\nInvalid choice! Try again.\n");
-        }
+    if (opt == 2) {
+        registerUser();
     }
+
+    logged = login();
+    if (!logged) return 0;
+
+    do {
+        printf("\n--- Parking Menu ---\n");
+        printf("1. Park Vehicle\n2. View Slots\n3. View Records\n4. View Sessions\n5. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &ch);
+
+        switch (ch) {
+            case 1:
+                printf("Enter slot id: ");
+                scanf("%d", &id);
+                printf("Enter parking time (hrs): ");
+                scanf("%d", &time);
+                fee = calcFee(time);
+                head = addSlot(head, id, time);
+                addRecord(id, time, fee);
+                saveSession("New parking session added.");
+                saveSlots(head);
+                printf("Fee: ₹%d\n", fee);
+                break;
+
+            case 2:
+                showSlots(head);
+                break;
+
+            case 3:
+                viewRecords();
+                break;
+
+            case 4:
+                showSession();
+                break;
+
+            case 5:
+                printf("Exiting...\n");
+                break;
+
+            default:
+                printf("Invalid choice!\n");
+        }
+    } while (ch != 5);
+
+    return 0;
 }
