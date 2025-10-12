@@ -1,66 +1,81 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
 #include "auth.h"
+#include "parking.h"
 #include "fees.h"
 #include "record.h"
 #include "session.h"
-#include "parking.h"
 
 int main() {
     struct Slot *head = NULL;
-    int ch, id, time, fee, logged = 0, opt;
-
+    int choice, hours;
+    char userType[10]; // optional for login type
     printf("--- Smart Parking System ---\n");
     printf("1. Login\n2. Register\nChoose: ");
-    scanf("%d", &opt);
+    scanf("%d", &choice);
 
-    if (opt == 2) {
-        registerUser();
-    }
+    if (choice == 2) registerUser();
 
-    logged = login();
-    if (!logged) return 0;
-
+    if (!login(userType)) return 0;
     do {
         printf("\n--- Parking Menu ---\n");
         printf("1. Park Vehicle\n2. View Slots\n3. View Records\n4. View Sessions\n5. Exit\n");
         printf("Enter choice: ");
-        scanf("%d", &ch);
+        scanf("%d", &choice);
 
-        switch (ch) {
-            case 1:
-                printf("Enter slot id: ");
-                scanf("%d", &id);
-                printf("Enter parking time (hrs): ");
-                scanf("%d", &time);
-                fee = calcFee(time);
-                head = addSlot(head, id, time);
-                addRecord(id, time, fee);
+        switch (choice) {
+            case 1: { // Park Vehicle
+                struct Park transaction;
+                int freeSlot = getNextFreeSlot(head);
+                if (freeSlot == -1) {
+                    printf("Parking full! No free slots.\n");
+                    break;
+                }
+
+                transaction.id = freeSlot;
+                printf("Enter parking hours: ");
+                scanf("%d", &hours);
+                printf("Enter vehicle plate: ");
+                scanf("%s", transaction.plate);
+                snprintf(transaction.slotName, sizeof(transaction.slotName), "SLOT%d", freeSlot);
+                transaction.startTime = time(NULL);
+                transaction.endTime = transaction.startTime + hours * 3600;
+
+                head = addSlot(head, freeSlot, hours);
+                addRecord(freeSlot, hours, hours * 20);  // optional
+                recordTransaction(&transaction);
                 saveSession("New parking session added.");
                 saveSlots(head);
-                printf("Fee: ₹%d\n", fee);
-                break;
 
-            case 2:
+                long fee = calcDuration(transaction.startTime, transaction.endTime) * 2;
+                printf("Allocated Slot: %d\n", freeSlot);
+                printf("Fee: ₹%ld\n", fee);
+                break;
+            }
+
+            case 2: 
                 showSlots(head);
                 break;
 
-            case 3:
+            case 3: 
                 viewRecords();
                 break;
 
-            case 4:
+            case 4: 
                 showSession();
                 break;
 
-            case 5:
+            case 5: 
                 printf("Exiting...\n");
                 break;
 
             default:
                 printf("Invalid choice!\n");
         }
-    } while (ch != 5);
+
+    } while (choice != 5);
 
     return 0;
 }
