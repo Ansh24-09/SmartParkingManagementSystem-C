@@ -1,6 +1,6 @@
-#ifndef FEE_H
-#define FEE_H
+#ifndef FEES_H
+#define FEES_H
 
-double calcFee(long start, long end);
+int calcFee(int time);
 
 #endif
