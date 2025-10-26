@@ -57,8 +57,6 @@ void showSessions() {
         temp = temp->next;
     }
 }
-
-// 🔍 Find session using linked list traversal
 Node* findSessionBySlot(int slot) {
     Node *temp = head;
     while (temp != NULL) {
