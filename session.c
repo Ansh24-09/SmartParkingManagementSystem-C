@@ -1,21 +1,70 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "session.h"
 
-void saveSession(char *msg) {
-    FILE *f = fopen("session.txt", "a");
-    fprintf(f, "%s\n", msg);   
-    fclose(f);
-}
+Node *head = NULL;
 
-void showSession() {
-    char line[100];
-    FILE *f = fopen("session.txt", "r");
-    if (!f) {
-        printf("No sessions found!\n");
+void addSession(int slot, char *vehicle, char *user, long inTime) {
+    Node *newNode = (Node*)malloc(sizeof(Node));
+    newNode->slot = slot;
+    strcpy(newNode->vehicle, vehicle);
+    strcpy(newNode->user, user);
+    newNode->inTime = inTime;
+    newNode->next = NULL;
+
+    if (head == NULL)
+        head = newNode;
+    else {
+        Node *temp = head;
+        while (temp->next != NULL)
+            temp = temp->next;
+        temp->next = newNode;
+    }
+}
+void endSession(int slot) {
+    Node *temp = head, *prev = NULL;
+
+    while (temp != NULL && temp->slot != slot) {
+        prev = temp;
+        temp = temp->next;
+    }
+
+    if (temp == NULL) {
+        printf("\nNo session found for slot %d.\n", slot);
         return;
     }
-    printf("\n-- Session Log --\n");
-    while (fgets(line, sizeof(line), f))
-        printf("%s", line);
-    fclose(f);
+
+    if (prev == NULL)
+        head = temp->next;
+    else
+        prev->next = temp->next;
+
+    free(temp);
+    printf("\nSlot %d session ended.\n", slot);
+}
+void showSessions() {
+    Node *temp = head;
+    if (temp == NULL) {
+        printf("\nNo active sessions.\n");
+        return;
+    }
+
+    printf("\nActive Parking Sessions:\n");
+    while (temp != NULL) {
+        printf("Slot: %d | Vehicle: %s | User: %s | In-Time: %ld\n",
+               temp->slot, temp->vehicle, temp->user, temp->inTime);
+        temp = temp->next;
+    }
+}
+
+// 🔍 Find session using linked list traversal
+Node* findSessionBySlot(int slot) {
+    Node *temp = head;
+    while (temp != NULL) {
+        if (temp->slot == slot)
+            return temp;
+        temp = temp->next;
+    }
+    return NULL;
 }
